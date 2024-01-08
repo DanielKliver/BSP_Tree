@@ -5,6 +5,17 @@
 
 using namespace std;
 
+
+typedef class node
+{
+	public:
+
+	int id_of_polygon;
+	node *parent;
+	node *front;
+	node *back;
+
+}node;
 //точка, содержащая координаты x и y
 typedef class point
 {
@@ -58,6 +69,35 @@ class random
 		}
 };
 
+class BSP_CMP
+{
+	private:
+
+	vector<polygon> classify_polygon(vector<polygon> list_of_polygons, vector<polygon> front_list, vector<polygon> back_list)
+	{
+		//вычислить два ребра и выполнить операцию векторного произведения
+		//составить уравнение плоскости вида 0x(x-1)-7x(y-12)+0x(z-0)
+		//подставлять в него значения первых двух точек каждого полигона, добавлять в back/front
+		//удалить первый полигон из вектора, вернуть его
+	}
+
+	public:
+	BSP_CMP(node* root, vector<polygon> list_of_polygons)
+	{
+		if(root->id_of_polygon == 0)
+		{
+			root->id_of_polygon = list_of_polygons[0].id_num;
+		}
+
+		vector<polygon> front_list;
+		vector<polygon> back_list;
+		//составляем backlist и frontlist. после чего можно сделать рекурсивный вызов конструктора
+		//с передачей корня и front/back листов
+		classify_polygon(list_of_polygons, front_list, back_list);
+		
+	}
+
+};
 int main()
 {
 	//создаём список полигонов;
