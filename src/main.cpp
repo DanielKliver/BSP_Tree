@@ -1,7 +1,7 @@
 #include<iostream>
 #include<vector>
 #include<ctime>
-#define NUM_OF_POLYGONS 10
+#define NUM_OF_POLYGONS 200
 
 using namespace std;
 
@@ -256,9 +256,10 @@ int main()
 
 	//создаём несколько полигонов и заполняем их рандомными значениями
 	//полигоны есть! осталось пропустить их через bsp комплилятор и построить bsp дерево.
+	list_of_polygons = random::rand_input(list_of_polygons);
+	/*
 	list_of_polygons.resize(3);
 	list_of_polygons[0].id_num = 0;
-	//заполнение точек координатами по x, y, z в диапазоне от 1 до 200
 	list_of_polygons[0].one.x = 6;
 	list_of_polygons[0].one.y = 8;
 	list_of_polygons[0].one.z = 1;
@@ -270,7 +271,6 @@ int main()
 	list_of_polygons[0].three.z = 0;
 
 	list_of_polygons[1].id_num = 1;
-	//заполнение точек координатами по x, y, z в диапазоне от 1 до 200
 	list_of_polygons[1].one.x = 20;
 	list_of_polygons[1].one.y = 8;
 	list_of_polygons[1].one.z = 1;
@@ -282,7 +282,6 @@ int main()
 	list_of_polygons[1].three.z = 0;
 
 	list_of_polygons[2].id_num = 2;
-	//заполнение точек координатами по x, y, z в диапазоне от 1 до 200
 	list_of_polygons[2].one.x = 2;
 	list_of_polygons[2].one.y = 11;
 	list_of_polygons[2].one.z = 1;
@@ -293,8 +292,11 @@ int main()
 	list_of_polygons[2].three.y = 11;
 	list_of_polygons[2].three.z = 0;
 	node root(0);
+	*/
+    node root(0);
+	unsigned int start_time = clock();
 	BSP_CMP Tree(&root, list_of_polygons);
-	//Tree.cmp(&root, list_of_polygons, NULL);
-
+	unsigned int end_time = clock();
+	cout<<"run_time:"<<((end_time-start_time)/1000)<<endl;
 	return 0;
 }
