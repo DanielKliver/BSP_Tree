@@ -6,7 +6,7 @@
 using namespace std;
 
 
-typedef class node
+typedef struct node
 {
 	public:
 
@@ -14,6 +14,13 @@ typedef class node
 	node *parent;
 	node *front;
 	node *back;
+
+	node(int id_of_polygon)
+	{
+		this->id_of_polygon = id_of_polygon;
+	}
+
+
 
 }node;
 //точка, содержащая координаты x и y
@@ -75,7 +82,13 @@ class BSP_CMP
 
 	int *vector_product(int *edge1, int *edge2)
 	{
+		int *normal = new int[3];
 		//векторное произведение
+		normal[0] = edge1[1]*edge2[2] - edge2[1]*edge1[2];
+        normal[1] = edge1[2]*edge2[0] - edge2[2]*edge1[0];
+        normal[2] = edge1[0]*edge2[1] - edge2[0]*edge1[1];
+
+		return normal;
 	}
 
 	int *find_normal(polygon list_of_polygons)
@@ -93,28 +106,97 @@ class BSP_CMP
 		edge1[1] = list_of_polygons.three.y - list_of_polygons.one.y;
 		edge1[2] = list_of_polygons.three.z - list_of_polygons.one.z;
 		//////////////////////////////////////////////////////////////////
-		
-		vector_product(edge1, edge2);
+		int *normal = new int[3];
+		//векторное произведение, получаем нормаль
+		normal = vector_product(edge1, edge2);
+		delete[] edge1;
+		delete[] edge2;
 
-
-		//надо удалить весь массив
-		delete edge1;
-		delete edge2;
+		return normal;
 	}
 
-	vector<polygon> classify_polygon(vector<polygon> list_of_polygons, vector<polygon> front_list, vector<polygon> back_list)
+	int check_position(int *normal, polygon main_polygon, polygon list_of_polygons)
+	{
+		float value = normal[0]*(list_of_polygons.one.x-main_polygon.one.x)+normal[1]*(list_of_polygons.one.y-main_polygon.one.y+normal[2]*(list_of_polygons.one.z -1 ));
+		int result;
+		if(value < 0)
+		{
+			result --;
+		}
+		else if(value > 0)
+		{
+			result ++;
+		}
+		value = normal[0]*(list_of_polygons.two.x-main_polygon.one.x)+normal[1]*(list_of_polygons.two.y-main_polygon.one.y+normal[2]*(list_of_polygons.two.z -1 ));
+		if(value < 0)
+		{
+			result --;
+		}
+		else if(value > 0)
+		{
+			result ++;
+		}
+
+		return result;
+		
+		
+	}
+	void classify_polygon(vector<polygon> list_of_polygons, vector<polygon> front_list, vector<polygon> back_list)
 	{
 		//вычислить два ребра и выполнить операцию векторного произведения
 		int *normal = new int[3];
 		normal = find_normal(list_of_polygons[0]);
-		//составить уравнение плоскости вида 0x(x-1)-7x(y-12)+0x(z-0)
+		//сохраняем необходимые компоненты первого полигона и удаляем его из списка
+		polygon main_polygon;
+		main_polygon.one.x = list_of_polygons[0].one.x;
+		main_polygon.one.y = list_of_polygons[0].one.y;
+		list_of_polygons.erase(list_of_polygons.begin());
+		//составить уравнение плоскости вида 0*(x-1)-7*(y-12)+0*(z-1)
 		//подставлять в него значения первых двух точек каждого полигона, добавлять в back/front
 		//удалить первый полигон из вектора, вернуть его
+		while(list_of_polygons.size()!=0)
+		{
+			int result = check_position(normal, main_polygon, list_of_polygons[0]);
+			//в данном случае никаких багов в 3д реализции BSP не будет, если одна из точек будет лежать в дной плоскости с полигоном
+			//поэтому это можно не учитывать
+			if(result == 1)
+			{
+				result++;
+			}
+			else if(result == -1)
+			{
+				result--;
+			}
+
+			switch (result)
+			{
+				//ниже полигона
+			case -2:
+				back_list.push_back(list_of_polygons[0]);
+				break;
+				//выше полигона
+			case +2:
+			front_list.push_back(list_of_polygons[0]);
+			break;
+
+			case 0:
+			//на нём
+			back_list.push_back(list_of_polygons[0]);
+			front_list.push_back(list_of_polygons[0]);
+			break;
+			default:
+			cout<<"Ошибка результата разбиения"<<endl;
+				break;
+			}
+			list_of_polygons.erase(list_of_polygons.begin());
+
+		}
+
 	}
 
 	public:
 
-	BSP_CMP(node* root, vector<polygon> list_of_polygons)
+	BSP_CMP(node *root, vector<polygon> list_of_polygons)
 	{
 		if(root->id_of_polygon == 0)
 		{
@@ -126,6 +208,8 @@ class BSP_CMP
 		//составляем backlist и frontlist. после чего можно сделать рекурсивный вызов конструктора
 		//с передачей корня и front/back листов
 		classify_polygon(list_of_polygons, front_list, back_list);
+		cout<<front_list[1].id_num<<endl;
+		
 		
 	}
 
@@ -134,10 +218,12 @@ int main()
 {
 	//создаём список полигонов;
 	vector<polygon> list_of_polygons;
+	
 	//создаём несколько полигонов и заполняем их рандомными значениями
-	list_of_polygons = random::rand_input(list_of_polygons);
+	random::rand_input(list_of_polygons);
 	//полигоны есть! осталось пропустить их через bsp комплилятор и построить bsp дерево.
-
+	node *root(0);
+	BSP_CMP tree(root, list_of_polygons);
 
 	return 0;
 }
