@@ -80,7 +80,7 @@ public:
 
 typedef class ret_poly
 {
-	public:
+public:
 	vector<polygon> front;
 	vector<polygon> back;
 
@@ -97,38 +97,28 @@ class BSP_CMP
 {
 private:
 
-	int* vector_product(int* edge1, int* edge2)
-	{
-		int* normal = new int[3];
-		//векторное произведение
-		normal[0] = edge1[1] * edge2[2] - edge2[1] * edge1[2];
-		normal[1] = edge1[2] * edge2[0] - edge2[2] * edge1[0];
-		normal[2] = edge1[0] * edge2[1] - edge2[0] * edge1[1];
-
-		return normal;
-	}
-
 	int* find_normal(polygon list_of_polygons)
 	{
 		//скорее всего нуждается в рефакторинге
-		int* edge1 = new int[3];
-		int* edge2 = new int[3];
+		int edge1[3];
+		int edge2[3];
 		//вычисление двух векторов полигона для дальнейшего поиска нормали 
 		//и составления уравнения плоскости
 		edge1[0] = list_of_polygons.two.x - list_of_polygons.one.x;
 		edge1[1] = list_of_polygons.two.y - list_of_polygons.one.y;
 		edge1[2] = list_of_polygons.two.z - list_of_polygons.one.z;
 
-		edge1[0] = list_of_polygons.three.x - list_of_polygons.one.x;
-		edge1[1] = list_of_polygons.three.y - list_of_polygons.one.y;
-		edge1[2] = list_of_polygons.three.z - list_of_polygons.one.z;
+		edge2[0] = list_of_polygons.three.x - list_of_polygons.one.x;
+		edge2[1] = list_of_polygons.three.y - list_of_polygons.one.y;
+		edge2[2] = list_of_polygons.three.z - list_of_polygons.one.z;
 		//////////////////////////////////////////////////////////////////
-		int* normal = new int[3];
+		int normal[3];
 		//векторное произведение, получаем нормаль
-		normal = vector_product(edge1, edge2);
-		delete[] edge1;
-		delete[] edge2;
-
+		normal[0] = edge1[1] * edge2[2] - edge2[1] * edge1[2];
+		normal[1] = edge1[2] * edge2[0] - edge2[2] * edge1[0];
+		normal[2] = edge1[0] * edge2[1] - edge2[0] * edge1[1];
+		
+		
 		return normal;
 	}
 
@@ -216,11 +206,12 @@ private:
 
 public:
 
-	BSP_CMP(node root, vector<polygon> list_of_polygons)
+	node* cmp(node* root, vector<polygon> list_of_polygons, node* prnt)
 	{
-		if (root.id_of_polygon == 0)
+		if (prnt != nullptr)
 		{
-			root.id_of_polygon = list_of_polygons[0].id_num;
+			root->id_of_polygon = list_of_polygons[0].id_num;
+			root->parent = prnt;
 		}
 
 		vector<polygon> front_list;
@@ -230,22 +221,95 @@ public:
 		ret_poly vec = classify_polygon(list_of_polygons, front_list, back_list);
 		front_list = vec.front;
 		back_list = vec.back;
-		
 
+		if (front_list.capacity() != 0)
+		{
+			node right(front_list[0].id_num);
+			root->front = &right;
+			cmp(root->front, front_list, root);
+
+		}
+
+		if (back_list.capacity() != 0)
+		{
+			node left(back_list[0].id_num);
+			root->back = &left;
+			cmp(root->back, back_list, root);
+
+		}
+
+		return root;
+	}
+
+	int cprnt(node* root)
+	{
+		if (root != NULL && root->back != NULL)
+		{
+			cprnt(root->back);
+		}
+		//cout<<root->id_of_polygon<<endl;
+		if (root != NULL && root->front != NULL)
+		{
+			cprnt(root->front);
+		}
+		return 0;
+	}
+
+	BSP_CMP(node* root, vector<polygon> list_of_polygons)
+	{
+		root = cmp(root, list_of_polygons, NULL);
+		cprnt(root);
 
 	}
+
 
 };
 int main()
 {
 	//создаём список полигонов;
- 	vector<polygon> list_of_polygons;
+	vector<polygon> list_of_polygons;
 
 	//создаём несколько полигонов и заполняем их рандомными значениями
-	list_of_polygons = random::rand_input(list_of_polygons);
 	//полигоны есть! осталось пропустить их через bsp комплилятор и построить bsp дерево.
+	list_of_polygons.resize(3);
+	list_of_polygons[0].id_num = 0;
+	//заполнение точек координатами по x, y, z в диапазоне от 1 до 200
+	list_of_polygons[0].one.x = 6;
+	list_of_polygons[0].one.y = 8;
+	list_of_polygons[0].one.z = 1;
+	list_of_polygons[0].two.x = 18;
+	list_of_polygons[0].two.y = 16;
+	list_of_polygons[0].two.z = 1;
+	list_of_polygons[0].three.x = 6;
+	list_of_polygons[0].three.y = 8;
+	list_of_polygons[0].three.z = 0;
+
+	list_of_polygons[1].id_num = 1;
+	//заполнение точек координатами по x, y, z в диапазоне от 1 до 200
+	list_of_polygons[1].one.x = 20;
+	list_of_polygons[1].one.y = 8;
+	list_of_polygons[1].one.z = 1;
+	list_of_polygons[1].two.x = 24;
+	list_of_polygons[1].two.y = 5;
+	list_of_polygons[1].two.z = 1;
+	list_of_polygons[1].three.x = 20;
+	list_of_polygons[1].three.y = 8;
+	list_of_polygons[1].three.z = 0;
+
+	list_of_polygons[2].id_num = 2;
+	//заполнение точек координатами по x, y, z в диапазоне от 1 до 200
+	list_of_polygons[2].one.x = 2;
+	list_of_polygons[2].one.y = 11;
+	list_of_polygons[2].one.z = 1;
+	list_of_polygons[2].two.x = 2;
+	list_of_polygons[2].two.y = 18;
+	list_of_polygons[2].two.z = 1;
+	list_of_polygons[2].three.x = 2;
+	list_of_polygons[2].three.y = 11;
+	list_of_polygons[2].three.z = 0;
 	node root(0);
-	BSP_CMP(root, list_of_polygons);
+	BSP_CMP Tree(&root, list_of_polygons);
+	//Tree.cmp(&root, list_of_polygons, NULL);
 
 	return 0;
 }
