@@ -97,62 +97,27 @@ class BSP_CMP
 {
 private:
 
-	int* find_normal(polygon list_of_polygons)
+	ret_poly classify_polygon(vector<polygon> list_of_polygons, vector<polygon> front_list, vector<polygon> back_list)
 	{
-		//скорее всего нуждается в рефакторинге
+		//вычислить два ребра и выполнить операцию векторного произведения
 		int edge1[3];
 		int edge2[3];
 		//вычисление двух векторов полигона для дальнейшего поиска нормали 
 		//и составления уравнения плоскости
-		edge1[0] = list_of_polygons.two.x - list_of_polygons.one.x;
-		edge1[1] = list_of_polygons.two.y - list_of_polygons.one.y;
-		edge1[2] = list_of_polygons.two.z - list_of_polygons.one.z;
+		edge1[0] = list_of_polygons[0].two.x - list_of_polygons[0].one.x;
+		edge1[1] = list_of_polygons[0].two.y - list_of_polygons[0].one.y;
+		edge1[2] = list_of_polygons[0].two.z - list_of_polygons[0].one.z;
 
-		edge2[0] = list_of_polygons.three.x - list_of_polygons.one.x;
-		edge2[1] = list_of_polygons.three.y - list_of_polygons.one.y;
-		edge2[2] = list_of_polygons.three.z - list_of_polygons.one.z;
+		edge2[0] = list_of_polygons[0].three.x - list_of_polygons[0].one.x;
+		edge2[1] = list_of_polygons[0].three.y - list_of_polygons[0].one.y;
+		edge2[2] = list_of_polygons[0].three.z - list_of_polygons[0].one.z;
 		//////////////////////////////////////////////////////////////////
 		int normal[3];
 		//векторное произведение, получаем нормаль
 		normal[0] = edge1[1] * edge2[2] - edge2[1] * edge1[2];
 		normal[1] = edge1[2] * edge2[0] - edge2[2] * edge1[0];
 		normal[2] = edge1[0] * edge2[1] - edge2[0] * edge1[1];
-		
-		
-		return normal;
-	}
-
-	int check_position(int* normal, polygon main_polygon, polygon list_of_polygons)
-	{
-		float value = normal[0] * (list_of_polygons.one.x - main_polygon.one.x) + normal[1] * (list_of_polygons.one.y - main_polygon.one.y + normal[2] * (list_of_polygons.one.z - 1));
-		int result = 0;
-		if (value < 0)
-		{
-			result--;
-		}
-		else if (value > 0)
-		{
-			result++;
-		}
-		value = normal[0] * (list_of_polygons.two.x - main_polygon.one.x) + normal[1] * (list_of_polygons.two.y - main_polygon.one.y + normal[2] * (list_of_polygons.two.z - 1));
-		if (value < 0)
-		{
-			result--;
-		}
-		else if (value > 0)
-		{
-			result++;
-		}
-
-		return result;
-
-
-	}
-	ret_poly classify_polygon(vector<polygon> list_of_polygons, vector<polygon> front_list, vector<polygon> back_list)
-	{
-		//вычислить два ребра и выполнить операцию векторного произведения
-		int* normal = new int[3];
-		normal = find_normal(list_of_polygons[0]);
+		//normal = find_normal(list_of_polygons[0]);
 		//сохраняем необходимые компоненты первого полигона и удаляем его из списка
 		polygon main_polygon;
 		main_polygon.one.x = list_of_polygons[0].one.x;
@@ -163,7 +128,27 @@ private:
 		//удалить первый полигон из вектора, вернуть его
 		while (list_of_polygons.size() != 0)
 		{
-			int result = check_position(normal, main_polygon, list_of_polygons[0]);
+			float value = normal[0] * (list_of_polygons[0].one.x - main_polygon.one.x) + normal[1] * (list_of_polygons[0].one.y - main_polygon.one.y + normal[2] * (list_of_polygons[0].one.z - 1));
+			int result = 0;
+			if (value < 0)
+			{
+				result--;
+			}
+			else if (value > 0)
+			{
+				result++;
+			}
+			value = normal[0] * (list_of_polygons[0].two.x - main_polygon.one.x) + normal[1] * (list_of_polygons[0].two.y - main_polygon.one.y + normal[2] * (list_of_polygons[0].two.z - 1));
+			if (value < 0)
+			{
+				result--;
+			}
+			else if (value > 0)
+			{
+				result++;
+			}
+
+			//int result = check_position(normal, main_polygon, list_of_polygons[0]);
 			//в данном случае никаких багов в 3д реализции BSP не будет, если одна из точек будет лежать в дной плоскости с полигоном
 			//поэтому это можно не учитывать
 			if (result == 1)
@@ -258,7 +243,7 @@ public:
 	BSP_CMP(node* root, vector<polygon> list_of_polygons)
 	{
 		root = cmp(root, list_of_polygons, NULL);
-		cprnt(root);
+		//cprnt(root);
 
 	}
 
